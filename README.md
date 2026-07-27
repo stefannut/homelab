@@ -212,11 +212,11 @@ The `services/` directory currently contains 17 subdirectories. Descriptions bel
 
 | Service | Description | Deploy | Status |
 | --- | --- | --- | --- |
-| **OPNsense** | A `services/opnsense/` folder exists in the repo | Unknown | ⚠️ Contradicts `CONTRIBUTING.md` §7, which states firewall/network config belongs in a separate `opnsense` repository. |
+| **OPNsense** | A router/firewall with the Suricata IPS/IDS protection. | Manual |
 
 ---
 
-## ESP32 / Embedded
+## Embedded
 
 The `esp32/` directory tracks firmware and device configs for home-automation hardware, separate from the Docker/Ansible service layer.
 
