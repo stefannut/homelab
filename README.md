@@ -425,9 +425,3 @@ See `CONTRIBUTING.md` for secrets handling, service-folder conventions, and Ansi
 ## License
 
 See `LICENSE`.
-
----
-
-## Acknowledgments
-
-*(Populate with actual credits/upstream projects as appropriate.)*
