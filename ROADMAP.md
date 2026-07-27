@@ -2,7 +2,7 @@
 
 This document outlines the current state of the infrastructure and the direction it is heading. It is maintained as a living reference — reviewed and updated as priorities shift, services mature, and new requirements emerge.
 
-The scope of this roadmap is limited to the **services layer** (this repository). Networking-level evolution (routing, VLAN segmentation, firewall policy) is tracked separately in the `opnsense` repository's own roadmap, with cross-references noted below where the two intersect.
+The scope of this roadmap is limited to the **services layer**.
 
 ---
 
@@ -52,13 +52,8 @@ The following improvements are scoped to strengthening reliability, observabilit
 
 ---
 
-## Future Integrations
-
-Longer-horizon items that depend on the maturity of both this repository and the networking (`opnsense`) repository. These are intentionally less concrete, as they depend on how the above improvements land in practice.
 
 ### Cross-Repo Automation with the Networking Repository
-
-- Explore a coordinated deployment trigger between this repository and the `opnsense` repository — for example, a new service's Compose definition automatically signaling a required reverse-proxy or firewall-rule change, without merging the two repositories' concerns.
 - Investigate a shared, minimal "contract" (e.g., a machine-readable manifest of exposed ports/hostnames per service) that the networking repository can consume, preserving separation of concerns while reducing manual coordination between the two layers.
 
 ### Secrets Management Evolution
