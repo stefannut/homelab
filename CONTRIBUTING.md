@@ -132,13 +132,3 @@ docker_hosts:
   - [ ] Image versions are pinned, not `latest`.
 
 ---
-
-## 7. Out of Scope for This Repository
-
-To maintain a clean separation of concerns, the following do **not** belong here and should be directed to the `opnsense` (networking) repository or another appropriate repository instead:
-
-- Firewall rules, VLAN definitions, DHCP/DNS configuration.
-- Reverse proxy *routing* decisions at the network/DNS level (though a service's own Compose-level labels for a reverse proxy it depends on are fine to include here).
-- Physical hardware inventory or rack layout documentation.
-
-When in doubt about which repository a change belongs in, ask: *"Does this describe a service, or does it describe how traffic reaches a service?"* The former belongs here; the latter belongs in the networking repository.
