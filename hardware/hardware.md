@@ -28,8 +28,8 @@ This file describes hardware and host-level virtualization only. Service definit
 
 | Layer | Detail |
 |---|---|
-| Hypervisor OS | Proxmox VE 9.2.4 |
-| Kernel | Linux 7.0.14-3-pve |
+| Hypervisor OS | Proxmox VE 9.2 |
+| Kernel | Linux 7.0 version pve |
 | Networking | Tailscale (mesh VPN) |
 | Virtualization | LXC containers & QEMU VMs |
 
