@@ -2,7 +2,6 @@
 
 Declarative, Ansible-driven infrastructure for a Proxmox-based homelab — self-hosted media, productivity, security, monitoring, home automation, and CI/CD services running across isolated LXC containers, with a growing ESP32 sensor/automation footprint and an early Kubernetes track.
 
-
 ![Proxmox VE](https://img.shields.io/badge/Proxmox_VE-9.2-E57000?style=flat-square&logo=proxmox&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose_v2-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Ansible](https://img.shields.io/badge/Ansible-Automated-EE0000?style=flat-square&logo=ansible&logoColor=white)
@@ -88,7 +87,7 @@ flowchart TB
     TS["Tailscale Mesh VPN"]:::external
     ESP["ESP32 Sensors/Actuators<br/>(irrigation, footprint WIP)"]:::embedded
 
-    subgraph HOST["Proxmox VE Host (i3-10100F / GTX 1050 Ti / 8GB RAM)"]
+    subgraph HOST["Proxmox VE Host"]
         subgraph EDGE["Edge and Security"]
             direction LR
             NPM["Nginx Proxy Manager<br/>80 / 443 / 81"]:::proxy
@@ -113,6 +112,7 @@ flowchart TB
             NC["Nextcloud<br/>8081"]:::media
             SO["Sonarr"]:::media
             BZ["Bazarr"]:::media
+            AB["Actual Budget<br/>5006"]:::media
         end
 
         subgraph AUTOMATION["Automation and Tools"]
@@ -120,6 +120,8 @@ flowchart TB
             HA["Home Assistant"]:::automation
             N8["n8n"]:::automation
             IT["IT-Tools"]:::automation
+            TR["Trilium Notes<br/>8080"]:::automation
+            CD["ChangeDetection.io<br/>5000"]:::automation
         end
 
         subgraph CIPIPE["CI/CD"]
@@ -133,7 +135,7 @@ flowchart TB
     TS --> NPM
     User -.->|DNS queries| PIHOLE
     NPM -.->|access logs| CS
-    NPM --> HM & UK & VW & GT & IM & NC & SO & BZ & GR & N8 & IT & HA
+    NPM --> HM & UK & VW & GT & IM & NC & SO & BZ & GR & N8 & IT & HA & AB & TR & CD
     HA <-.->|MQTT/API| ESP
     PR -.->|scrape| CORE & MEDIA & AUTOMATION
     GR -->|dashboards| PR
@@ -163,56 +165,57 @@ flowchart TB
 
 ## Services
 
-The `services/` directory currently contains 17 subdirectories. Descriptions below are marked **(verified)** where I fetched and read the actual compose file, and **(inferred from filename)** where I'm relying on the tool/service being well-known.
-
 ### Edge and Security
 
 | Service | Description | Deploy | Status |
 | --- | --- | --- | --- |
-| **Nginx Proxy Manager** | Reverse proxy fronting every web UI; issues and renews Let's Encrypt certificates | Manual | (verified, prior README) |
-| **Pi-hole** | Network-wide DNS sinkhole that blocks ads and trackers at the DNS layer | Manual | (verified, prior README) |
-| **CrowdSec** | Parses Nginx access logs and blocks IPs matching known attack signatures | Ansible | (verified, prior README) |
+| **Nginx Proxy Manager** | Reverse proxy fronting every web UI; issues and renews Let's Encrypt certificates | Manual | Verified |
+| **Pi-hole** | Network-wide DNS sinkhole that blocks ads and trackers at the DNS layer | Manual | Verified |
+| **CrowdSec** | Parses Nginx access logs and blocks IPs matching known attack signatures | Ansible | Verified |
 
 ### Core and Monitoring
 
 | Service | Description | Deploy | Status |
 | --- | --- | --- | --- |
-| **Homarr** | Single-pane dashboard linking every service, with live CPU/RAM/disk widgets | Ansible | (verified, prior README) |
-| **Uptime Kuma** | Polls every service on an interval and alerts when one goes down | Ansible | (verified, prior README) |
-| **Vaultwarden** | Bitwarden-compatible vault for storing and syncing credentials | Ansible | (verified, prior README) |
-| **Gitea** | Self-hosted Git remote for private repositories | Manual | (verified, prior README) |
-| **Prometheus** | Metrics collection and scraping across the stack | Manual | **New** — compose + config committed minutes ago (inferred from filename: `docker-compose.yml` + a Prometheus config file) |
-| **Grafana** | Dashboards and visualization on top of Prometheus metrics | Manual | **New** — compose committed minutes ago (inferred from filename) |
-| **Scrutiny** | S.M.A.R.T. disk health monitoring and alerting | Manual | **New** — compose committed minutes ago (inferred from filename) |
+| **Homarr** | Single-pane dashboard linking every service, with live CPU/RAM/disk widgets | Ansible | Verified |
+| **Uptime Kuma** | Polls every service on an interval and alerts when one goes down | Ansible | Verified |
+| **Vaultwarden** | Bitwarden-compatible vault for storing and syncing credentials | Ansible | Verified |
+| **Gitea** | Self-hosted Git remote for private repositories | Manual | Verified |
+| **Prometheus** | Metrics collection and scraping across the stack | Manual | Verified |
+| **Grafana** | Dashboards and visualization on top of Prometheus metrics | Manual | Verified |
+| **Scrutiny** | S.M.A.R.T. disk health monitoring and alerting | Manual | Verified |
 
 ### Media and Files
 
 | Service | Description | Deploy | Status |
 | --- | --- | --- | --- |
-| **Immich** | Backs up phone photos/videos with facial recognition and albums | Ansible | (verified, prior README) |
-| **Nextcloud** | File sync, share links, and office collaboration | Manual | (verified, prior README) |
-| **Sonarr** | Monitors and automatically fetches TV episodes (part of `arr-suite/`) | Manual | (verified, prior README) |
-| **Bazarr** | Fetches matching subtitles for the Sonarr library (part of `arr-suite/`) | Manual | (verified, prior README) |
+| **Immich** | Backs up phone photos/videos with facial recognition and albums | Ansible | Verified |
+| **Nextcloud** | File sync, share links, and office collaboration | Manual | Verified |
+| **Sonarr** | Monitors and automatically fetches TV episodes (part of `arr-suite/`) | Manual | Verified |
+| **Bazarr** | Fetches matching subtitles for the Sonarr library (part of `arr-suite/`) | Manual | Verified |
+| **Actual Budget** | Self-hosted local-first personal finance budget app | Manual | **New** |
 
 ### Automation and Tools
 
 | Service | Description | Deploy | Status |
 | --- | --- | --- | --- |
-| **Home Assistant** | Home automation hub; likely the control plane for the ESP32 irrigation node given the repo's embedded footprint | Manual | **New** — files added via upload, not yet reviewed |
-| **n8n** | Workflow/automation orchestration (webhooks, integrations, scheduled jobs) | Manual | **New** — compose committed minutes ago (inferred from filename) |
-| **IT-Tools** | Self-hosted collection of everyday developer/IT utilities | Manual | **New** — compose committed minutes ago (inferred from filename) |
+| **Home Assistant** | Home automation hub; likely the control plane for the ESP32 irrigation node | Manual | Verified |
+| **n8n** | Workflow/automation orchestration (webhooks, integrations, scheduled jobs) | Manual | Verified |
+| **IT-Tools** | Self-hosted collection of everyday developer/IT utilities | Manual | Verified |
+| **Trilium Notes** | Hierarchical note-taking application supporting deep personal knowledge bases | Manual | **New** |
+| **ChangeDetection.io** | Self-hosted web page change detection and monitoring notification service | Manual | **New** |
 
 ### CI/CD
 
 | Service | Description | Deploy | Status |
 | --- | --- | --- | --- |
-| **Woodpecker CI** | Lightweight CI/CD pipeline runner, plausibly wired to Gitea for build triggers | Manual | **New** — compose committed minutes ago (inferred from filename) |
+| **Woodpecker CI** | Lightweight CI/CD pipeline runner, plausibly wired to Gitea for build triggers | Manual | Verified |
 
-### Networking 
+### Networking
 
 | Service | Description | Deploy | Status |
 | --- | --- | --- | --- |
-| **OPNsense** | A router/firewall with the Suricata IPS/IDS protection. | Manual |
+| **OPNsense** | Router/firewall with Suricata IPS/IDS protection | Manual | Verified |
 
 ---
 
@@ -224,11 +227,11 @@ The `esp32/` directory tracks firmware and device configs for home-automation ha
 esp32/
 ├── irrigation/
 │   └── files/
-│       ├── config.yaml       # base device configuration
-│       ├── main.cpp          # firmware entry point
-│       ├── sector_1.yaml     # per-zone/sector configuration
-│       ├── timpi.yaml        # timing/schedule configuration
-│       └── valve.cpp         # valve control logic
+│       ├── config.yaml        # base device configuration
+│       ├── main.cpp           # firmware entry point
+│       ├── sector_1.yaml      # per-zone/sector configuration
+│       ├── timpi.yaml         # timing/schedule configuration
+│       └── valve.cpp          # valve control logic
 └── footprint/
     └── WIP.md                 # planning doc — not yet implemented
 
@@ -268,7 +271,7 @@ homelab/
 │       ├── deploy_services.yml
 │       └── inventory.ini
 ├── inventory/
-│   └── hosts.yml                      # Ansible inventory (per CONTRIBUTING.md §5.1 convention)
+│   └── hosts.yml                      # Ansible inventory
 ├── esp32/
 │   ├── irrigation/
 │   │   └── files/
@@ -283,23 +286,26 @@ homelab/
 │   ├── ansible/
 │   └── deploy.mk
 └── services/
+    ├── actualbudget/docker-compose.yml
     ├── arr-suite/
     │   ├── docker-compose-bazarr.yml
     │   └── docker-compose-sonarr.yml
+    ├── changedetection.io/docker-compose.yml
     ├── crowdsec/docker-compose.yml
     ├── gitea/docker-compose.yml
     ├── grafana/docker-compose.yml
     ├── homarr/docker-compose.yml
-    ├── homeassistant/                 # contents added via upload
+    ├── homeassistant/                 
     ├── immich/docker-compose.yml
     ├── it-tools/docker-compose.yml
     ├── n8n/docker-compose.yml
     ├── nextcloud/docker-compose.yml
     ├── nginx/docker-compose.yml       # Nginx Proxy Manager
-    ├── opnsense/                      
+    ├── opnsense/                     
     ├── pi-hole/docker-compose.yml
     ├── prometheus/                    # docker-compose.yml + config file
     ├── scrutiny/docker-compose.yml
+    ├── trillium-notes/docker-compose.yml
     ├── uptime-kuma/docker-compose.yml
     ├── vaultwarden/docker-compose.yml
     └── woodpecker-ci/docker-compose.yml
@@ -323,23 +329,22 @@ homelab/
 ### Automated deployment (services wired into `deploy_services.yml`)
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/stefannut/homelab.git
 cd homelab
 
 ```
 
-
 2. Replace the placeholder addresses in `ansible/group_vars/inventory.ini` — and/or `inventory/hosts.yml` — with your real LXC IPs.
 3. Review `ansible/group_vars/all.yml` — adjust `default_timezone`, `docker_network_name`, or `homelab_services` if needed.
 4. Set any required secrets first (see [Configuration and Secrets](https://www.google.com/search?q=%23configuration-and-secrets)).
 5. Run the playbook from the repository root:
+
 ```bash
 ansible-playbook -i ansible/group_vars/inventory.ini ansible/group_vars/deploy_services.yml
 
 ```
-
-
 
 ### Manual deployment (remaining services)
 
@@ -366,6 +371,9 @@ Per `CONTRIBUTING.md` §2, no secrets are ever committed to Git. Secrets are sup
 | **n8n** | Encryption key, base URL, and any webhook credentials |
 | **Home Assistant** | Long-lived access token if integrating with n8n or ESP32 devices |
 | **Gitea + Woodpecker CI** | OAuth/webhook secret linking the two |
+| **Actual Budget** | Data directory configuration |
+| **Trilium Notes** | Node data directory configuration |
+| **ChangeDetection.io** | PUID/PGID and datastore volume permissions |
 
 ---
 
@@ -375,9 +383,11 @@ In addition to the main Proxmox node, the infrastructure includes a dedicated se
 
 * **OS:** OpenMediaVault (OMV)
 * **Hardware:** ASUS X451MA Laptop
-  * **CPU:** Intel Celeron N2830 (2 cores / 2 threads)
-  * **RAM:** 2 GB DDR3
-  * **Storage:** 500 GB HDD
+* **CPU:** Intel Celeron N2830 (2 cores / 2 threads)
+* **RAM:** 2 GB DDR3
+* **Storage:** 500 GB HDD
+
+
 * **Role:** Centralized storage, file sharing, and a secondary backup destination within the homelab.
 
 ---
@@ -394,7 +404,7 @@ In addition to the main Proxmox node, the infrastructure includes a dedicated se
 ## Notes and Considerations
 
 * **Two inventory sources:** `ansible/group_vars/inventory.ini` and `inventory/hosts.yml` both exist. Confirm which one is authoritative for `deploy_services.yml`.
-* **Rapid recent activity:** `grafana`, `it-tools`, `n8n`, `prometheus`, `scrutiny`, and `woodpecker-ci` were all added recently without accompanying `.env.example` files or per-service `README.md` docs.
+* **Newly added services:** `actualbudget`, `changedetection.io`, and `trillium-notes` have been integrated into the `services/` stack.
 * **`esp32/footprint/`** is a `WIP.md` placeholder only.
 * **`kubernetes/`** is an early track per the roadmap, not the production orchestration layer.
 
@@ -418,6 +428,6 @@ See `LICENSE`.
 
 ---
 
-## Acknowledgks
+## Acknowledgments
 
 *(Populate with actual credits/upstream projects as appropriate.)*
