@@ -369,6 +369,19 @@ Per `CONTRIBUTING.md` §2, no secrets are ever committed to Git. Secrets are sup
 
 ---
 
+## Secondary Storage (NAS)
+
+In addition to the main Proxmox node, the infrastructure includes a dedicated server for storage and backup:
+
+* **OS:** OpenMediaVault (OMV)
+* **Hardware:** ASUS X451MA Laptop
+  * **CPU:** Intel Celeron N2830 (2 cores / 2 threads)
+  * **RAM:** 2 GB DDR3
+  * **Storage:** 500 GB HDD
+* **Role:** Centralized storage, file sharing, and a secondary backup destination within the homelab.
+
+---
+
 ## Security Considerations
 
 * No secrets are committed in plaintext; sensitive values are left blank in compose files and supplied at deploy time.
