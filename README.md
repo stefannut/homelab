@@ -208,7 +208,7 @@ The `services/` directory currently contains 17 subdirectories. Descriptions bel
 | --- | --- | --- | --- |
 | **Woodpecker CI** | Lightweight CI/CD pipeline runner, plausibly wired to Gitea for build triggers | Manual | **New** — compose committed minutes ago (inferred from filename) |
 
-### Networking *(Scope Discrepancy)*
+### Networking 
 
 | Service | Description | Deploy | Status |
 | --- | --- | --- | --- |
