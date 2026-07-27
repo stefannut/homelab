@@ -3,7 +3,7 @@
 Declarative, Ansible-driven infrastructure for a Proxmox-based homelab — self-hosted media, productivity, security, monitoring, home automation, and CI/CD services running across isolated LXC containers, with a growing ESP32 sensor/automation footprint and an early Kubernetes track.
 
 
-![Proxmox VE](https://img.shields.io/badge/Proxmox_VE-9.2.4-E57000?style=flat-square&logo=proxmox&logoColor=white)
+![Proxmox VE](https://img.shields.io/badge/Proxmox_VE-9.2-E57000?style=flat-square&logo=proxmox&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose_v2-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Ansible](https://img.shields.io/badge/Ansible-Automated-EE0000?style=flat-square&logo=ansible&logoColor=white)
 ![Tailscale](https://img.shields.io/badge/Tailscale-Mesh_VPN-242424?style=flat-square&logo=tailscale&logoColor=white)
@@ -49,7 +49,7 @@ Beyond the Docker/Ansible service layer, the repo now also tracks:
 
 | Layer | Technology |
 | --- | --- |
-| **Hypervisor** | Proxmox VE 9.2.4 — LXC containers + QEMU VMs |
+| **Hypervisor** | Proxmox VE 9.2 — LXC containers + QEMU VMs |
 | **Configuration management** | Ansible (playbook-driven, idempotent) |
 | **Containers** | Docker Engine + Docker Compose v2 |
 | **Reverse proxy / TLS** | Nginx Proxy Manager (Let's Encrypt) |
