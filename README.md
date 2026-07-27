@@ -296,7 +296,7 @@ homelab/
     ├── n8n/docker-compose.yml
     ├── nextcloud/docker-compose.yml
     ├── nginx/docker-compose.yml       # Nginx Proxy Manager
-    ├── opnsense/                      # scope discrepancy — see Notes
+    ├── opnsense/                      
     ├── pi-hole/docker-compose.yml
     ├── prometheus/                    # docker-compose.yml + config file
     ├── scrutiny/docker-compose.yml
@@ -388,13 +388,11 @@ In addition to the main Proxmox node, the infrastructure includes a dedicated se
 * CrowdSec ingests Nginx Proxy Manager's access logs and blocks IPs matching known attack signatures.
 * Pi-hole blocks ad and tracker domains at the DNS layer for every device on the LAN.
 * Remote access goes through Tailscale's mesh VPN rather than forwarding ports to the internet.
-* Per `CONTRIBUTING.md` §7, network-level security (firewall rules, VLANs) is meant to live in a separate `opnsense` repository.
 
 ---
 
 ## Notes and Considerations
 
-* **Scope discrepancy:** `CONTRIBUTING.md` explicitly states networking/OPNsense configuration is out of scope for this repository and belongs in a separate `opnsense` repo. A `services/opnsense/` folder nonetheless exists here.
 * **Two inventory sources:** `ansible/group_vars/inventory.ini` and `inventory/hosts.yml` both exist. Confirm which one is authoritative for `deploy_services.yml`.
 * **Rapid recent activity:** `grafana`, `it-tools`, `n8n`, `prometheus`, `scrutiny`, and `woodpecker-ci` were all added recently without accompanying `.env.example` files or per-service `README.md` docs.
 * **`esp32/footprint/`** is a `WIP.md` placeholder only.
