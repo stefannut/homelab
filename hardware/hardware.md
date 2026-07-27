@@ -6,7 +6,7 @@ This file describes hardware and host-level virtualization only. Service definit
 
 ---
 
-## Host: `pve1`
+## Host: `proxmox`
 
 ### Hardware
 
@@ -50,7 +50,7 @@ Running backup (PBS) and the thing being backed up on the same physical host is 
 
 ---
 
-## Host: `nas1`
+## Host: `openmediavault`
 
 ### Hardware
 
