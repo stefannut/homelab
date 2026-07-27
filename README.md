@@ -36,7 +36,7 @@ Declarative, Ansible-driven infrastructure for a Proxmox-based homelab — self-
 
 This repository is the single source of truth for a self-hosted homelab running on a single Proxmox VE node. Ansible drives repeatable, idempotent deployment of Dockerized services into individual LXC containers, so the core stack can be rebuilt from a clean host with one playbook run. The rest of the catalog deploys with a single `docker compose up -d` per service. DNS, reverse proxying, backups, file sync, monitoring, CI, home automation, and household tooling all live in version control here instead of being clicked together by hand.
 
-This repository is intentionally **scoped to services** — network topology, VLANs, firewall rules, and reverse-proxy routing at the network level live in a separate `opnsense` repository, per `CONTRIBUTING.md` §7. *(Note: a `services/opnsense/` folder exists in this repo as of the latest commit — see [Notes and Considerations](https://www.google.com/search?q=%23notes-and-considerations) for the discrepancy this creates against the stated scope.)*
+This repository is intentionally **scoped to services** — network topology, VLANs, firewall rules, and reverse-proxy routing at the network level.
 
 Beyond the Docker/Ansible service layer, the repo now also tracks:
 
