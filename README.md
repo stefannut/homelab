@@ -1,7 +1,7 @@
+
 # Homelab
 
-Declarative, Ansible-driven infrastructure for a Proxmox-based homelab — self-hosted media, productivity, security, monitoring, home automation, and CI/CD services running across isolated LXC containers, with a growing ESP32 sensor/automation footprint and an early Kubernetes track.
-
+Declarative, Ansible-driven infrastructure for a Proxmox-based homelab — self-hosted media, productivity, security, monitoring, home automation, and CI/CD services running across isolated LXC containers, with a growing ESP32 sensor/automation footprint, multi-hypervisor options, Infrastructure as Code (Terraform) templates, and an early Kubernetes track.
 
 ![Proxmox](https://img.shields.io/badge/Proxmox_VE-9.2-E57000?style=flat-square&logo=proxmox&logoColor=white)
 ![AWS](https://img.shields.io/badge/Amazon_Web_Services-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white)
@@ -18,18 +18,39 @@ Declarative, Ansible-driven infrastructure for a Proxmox-based homelab — self-
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=flat-square&logo=grafana&logoColor=white)
 ![ESP32](https://img.shields.io/badge/ESP32-IoT-E7352C?style=flat-square&logo=espressif&logoColor=white)
 ![Home Assistant](https://img.shields.io/badge/Home_Assistant-41BDF5?style=flat-square&logo=homeassistant&logoColor=white)
+
+---
+
+## Table of Contents
+
+* [Overview](#overview)
+* [Tech Stack](#tech-stack)
+* [Architecture](#architecture)
+* [Hardware Specifications](#hardware-specifications)
+* [Core Services Inventory](#core-services-inventory)
+* [Infrastructure as Code & Hypervisors](#infrastructure-as-code--hypervisors)
+* [ESP32 / Embedded](#esp32--embedded)
+* [Kubernetes Track](#kubernetes-track)
+* [Repository Structure](#repository-structure)
+* [Getting Started & Automation Scripts](#getting-started--automation-scripts)
+* [Configuration & Security Practices](#configuration--security-practices)
+* [Secondary Storage (NAS)](#secondary-storage-nas)
+* [Roadmap](#roadmap)
+* [Contributing](#contributing)
+* [License](#license)
+
 ---
 
 ## Overview
 
-This repository is the single source of truth for a self-hosted homelab running on a single Proxmox VE node. Ansible drives repeatable, idempotent deployment of Dockerized services into individual LXC containers, so the core stack can be rebuilt from a clean host with one playbook run. The rest of the catalog deploys with a single `docker compose up -d` per service. DNS, reverse proxying, backups, file sync, monitoring, CI, home automation, and household tooling all live in version control here instead of being clicked together by hand.
+This repository serves as the single source of truth for an advanced self-hosted homelab environment. Proxmox VE acts as the primary hypervisor, while Ansible automates reliable, idempotent deployments of containerized workloads. Infrastructure as Code principles are enforced across both cloud environments and hypervisor layers via modular Terraform configurations.
 
-This repository is intentionally **scoped to services** — network topology, VLANs, firewall rules, and reverse-proxy routing at the network level.
-
-Beyond the Docker/Ansible service layer, the repo now also tracks:
-
-* `esp32/` — embedded firmware and configs for ESP32-based home automation (irrigation control, plus a "footprint" effort still in early planning).
-* `kubernetes/` — an early-stage Kubernetes track, consistent with `ROADMAP.md`'s stated evaluation of K3s vs. Docker Swarm for high availability. This is **not** a production orchestration layer yet — see [Kubernetes Track](https://www.google.com/search?q=%23kubernetes-track).
+### Key Functional Domains:
+* **`services/`** — Core homelab applications deployed via Docker Compose in isolated LXC containers.
+* **`terraform/` & `aws/`** — Enterprise-grade modular Terraform configurations for AWS provisioning and local infrastructure.
+* **`hypervisors/`** — IaC definitions and management setups for alternative virtualization platforms (ESXi, Xen, bhyve).
+* **`esp32/`** — Embedded C++ firmware and modular YAML configurations dedicated to hardware automation.
+* **`kubernetes/`** — Evaluation track exploring container orchestration scalability using K3s.
 
 ---
 
@@ -37,27 +58,21 @@ Beyond the Docker/Ansible service layer, the repo now also tracks:
 
 | Layer | Technology |
 | --- | --- |
-| **Hypervisor** | Proxmox VE 9.2 — LXC containers + QEMU VMs |
-| **Configuration management** | Ansible (playbook-driven, idempotent) |
-| **Containers** | Docker Engine + Docker Compose v2 |
-| **Reverse proxy / TLS** | Nginx Proxy Manager (Let's Encrypt) |
-| **DNS / ad-blocking** | Pi-hole |
-| **Intrusion prevention** | CrowdSec |
-| **Metrics** | Prometheus |
-| **Dashboards** | Grafana |
-| **Home automation** | Home Assistant + ESP32 firmware |
-| **CI/CD** | Woodpecker CI |
-| **Workflow automation** | n8n |
-| **Disk health monitoring** | Scrutiny |
-| **Remote access** | Tailscale mesh VPN (no inbound ports exposed to the internet) |
-| **Orchestration (evaluating)** | Kubernetes (early track — see [Kubernetes Track](https://www.google.com/search?q=%23kubernetes-track)) |
-| **Networking** | Dedicated bridge network `vmbr1` + per-service static LAN IPs |
+| **Cloud Public** | AWS (Terraform modular architecture, VPC, EC2) |
+| **Hypervisors** | Proxmox VE 9.2, VMware ESXi, Xen, bhyve |
+| **Configuration Management** | Ansible (playbook-driven, idempotent automation) |
+| **Infrastructure as Code** | Terraform (v1.5+) |
+| **Containerization** | Docker Engine & Docker Compose v2 |
+| **Edge & Security** | Nginx Proxy Manager, Authentik, Pi-hole, CrowdSec |
+| **Observability** | Prometheus, Grafana, Scrutiny (S.M.A.R.T. monitoring) |
+| **Automation & CI/CD** | Woodpecker CI, n8n, GitHub Actions, Makefile workflows |
+| **Remote Access** | Tailscale mesh VPN (secure zero-trust access) |
 
 ---
 
 ## Architecture
 
-Each service runs in its own LXC container with a dedicated static IP on the LAN rather than sharing a single Docker host. Nginx Proxy Manager terminates TLS and routes hostnames to each container, Pi-hole resolves DNS for the LAN, CrowdSec watches the proxy's access logs for abuse, and Prometheus + Grafana provide metrics and dashboards across the stack.
+Traffic and services are segregated across independent container networks and dedicated static LAN endpoints. The edge is managed securely via Nginx Proxy Manager for TLS termination, Authentik for SSO, Pi-hole for network-wide DNS resolution, and CrowdSec for automated threat mitigation.
 
 ```mermaid
 flowchart TB
@@ -70,180 +85,142 @@ flowchart TB
     classDef automation fill:#166534,stroke:#22c55e,color:#f0fdf4
     classDef ci fill:#312e81,stroke:#6366f1,color:#eef2ff
     classDef embedded fill:#831843,stroke:#ec4899,color:#fdf2f8
-    classDef host fill:#4c1d95,stroke:#a78bfa,color:#f5f3ff
 
     User(["User Device"]):::external
     TS["Tailscale Mesh VPN"]:::external
-    ESP["ESP32 Sensors/Actuators<br/>(irrigation, footprint WIP)"]:::embedded
+    ESP["ESP32 Sensors/Actuators<br/>(Irrigation / Footprint)"]:::embedded
 
     subgraph HOST["Proxmox VE Host"]
-        subgraph EDGE["Edge and Security"]
+        subgraph EDGE["Edge & Security Layer"]
             direction LR
-            NPM["Nginx Proxy Manager<br/>80 / 443 / 81"]:::proxy
-            PIHOLE["Pi-hole DNS<br/>53"]:::security
+            NPM["Nginx Proxy Manager"]:::proxy
+            AU["Authentik"]:::security
+            PIHOLE["Pi-hole DNS"]:::security
             CS["CrowdSec IPS"]:::security
         end
 
-        subgraph CORE["Core and Monitoring"]
+        subgraph CORE["Core & Monitoring Layer"]
             direction LR
-            HM["Homarr<br/>7575"]:::core
-            UK["Uptime Kuma<br/>3001"]:::core
-            VW["Vaultwarden<br/>8080"]:::core
-            GT["Gitea<br/>3000/2222"]:::core
+            HM["Homarr"]:::core
+            UK["Uptime Kuma"]:::core
+            VW["Vaultwarden"]:::core
+            GT["Gitea"]:::core
             PR["Prometheus"]:::monitoring
             GR["Grafana"]:::monitoring
             SC["Scrutiny"]:::monitoring
         end
 
-        subgraph MEDIA["Media and Files"]
+        subgraph MEDIA["Media & File Services"]
             direction LR
-            IM["Immich<br/>2283"]:::media
-            NC["Nextcloud<br/>8081"]:::media
+            IM["Immich"]:::media
+            NC["Nextcloud"]:::media
             SO["Sonarr"]:::media
             BZ["Bazarr"]:::media
-            AB["Actual Budget<br/>5006"]:::media
+            AB["Actual Budget"]:::media
         end
 
-        subgraph AUTOMATION["Automation and Tools"]
+        subgraph AUTOMATION["Automation & Utilities"]
             direction LR
             HA["Home Assistant"]:::automation
+            FR["Frigate NVR"]:::automation
             N8["n8n"]:::automation
             IT["IT-Tools"]:::automation
-            TR["Trilium Notes<br/>8080"]:::automation
-            CD["ChangeDetection.io<br/>5000"]:::automation
+            TR["Trilium Notes"]:::automation
+            CD["ChangeDetection.io"]:::automation
         end
 
-        subgraph CIPIPE["CI/CD"]
+        subgraph CIPIPE["CI/CD Pipeline"]
             direction LR
             WP["Woodpecker CI"]:::ci
         end
     end
 
-    User -->|LAN| NPM
-    User -->|Remote access| TS
+    User -->|LAN Traffic| NPM
+    User -->|Remote Access| TS
     TS --> NPM
-    User -.->|DNS queries| PIHOLE
-    NPM -.->|access logs| CS
-    NPM --> HM & UK & VW & GT & IM & NC & SO & BZ & GR & N8 & IT & HA & AB & TR & CD
-    HA <-.->|MQTT/API| ESP
-    PR -.->|scrape| CORE & MEDIA & AUTOMATION
-    GR -->|dashboards| PR
-    GT -.->|triggers| WP
-
+    User -.->|DNS Queries| PIHOLE
+    NPM -.->|Access Logs| CS
+    NPM --> AU & HM & UK & VW & GT & IM & NC & SO & BZ & GR & N8 & IT & HA & FR & AB & TR & CD
+    HA <-.->|MQTT / API| ESP
+    PR -.->|Metrics Scrape| CORE & MEDIA & AUTOMATION
+    GR -->|Dashboards| PR
+    GT -.->|Triggers| WP
 
 ```
 
-> **Legend:** Solid arrows follow user/traffic flow; dotted arrows represent DNS queries, log ingestion, metrics scraping, and device telemetry.
-
 ---
 
-## Hardware
+## Hardware Specifications
 
-| Component | Detail |
+| Component | Specification Details |
 | --- | --- |
-| **CPU** | Intel Core i3-10100F — 4 cores / 8 threads @ 4.30 GHz |
-| **GPU** | NVIDIA GeForce GTX 1050 Ti (4 GB VRAM) |
-| **RAM** | 8 GB DDR4 |
+| **Processor** | Intel Core i3-10100F (4 Cores / 8 Threads @ 4.30 GHz) |
+| **Graphics** | NVIDIA GeForce GTX 1050 Ti (4 GB VRAM) |
+| **Memory** | 8 GB DDR4 RAM |
 | **Storage** | 512 GB SATA SSD |
-| **Hypervisor OS** | Proxmox VE 9.2.4 |
-| **Kernel** | Linux 7.0.14-3-pve |
+| **Hypervisor OS** | Proxmox VE 9.2.4 (Linux 7.0.14-3-pve) |
 | **Virtualization** | LXC containers + QEMU VMs |
-| **Embedded nodes** | ESP32 (irrigation control; additional "footprint" nodes WIP) |
-| **Remote networking** | Tailscale mesh VPN |
+| **Embedded Nodes** | ESP32 (Irrigation control; footprint WIP) |
+| **Networking** | Tailscale secure mesh VPN overlay |
 
 ---
 
-## Services
+## Core Services Inventory
 
-### Edge and Security
+### Edge & Security
 
-| Service | Description | Deploy | Status |
-| --- | --- | --- | --- |
-| **Nginx Proxy Manager** | Reverse proxy fronting every web UI; issues and renews Let's Encrypt certificates | Manual | Verified |
-| **Pi-hole** | Network-wide DNS sinkhole that blocks ads and trackers at the DNS layer | Manual | Verified |
-| **CrowdSec** | Parses Nginx access logs and blocks IPs matching known attack signatures | Ansible | Verified |
+* **Nginx Proxy Manager:** Reverse proxy routing web traffic and automating Let's Encrypt SSL/TLS lifecycle.
+* **Authentik:** Identity provider and Single Sign-On (SSO) solution securing internal applications.
+* **Pi-hole:** Network-wide DNS sinkhole eliminating ads and malicious trackers at the DNS level.
+* **CrowdSec:** Behavioral intrusion prevention system scanning access logs and blocking active threats.
 
-### Core and Monitoring
+### Core & Monitoring
 
-| Service | Description | Deploy | Status |
-| --- | --- | --- | --- |
-| **Homarr** | Single-pane dashboard linking every service, with live CPU/RAM/disk widgets | Ansible | Verified |
-| **Uptime Kuma** | Polls every service on an interval and alerts when one goes down | Ansible | Verified |
-| **Vaultwarden** | Bitwarden-compatible vault for storing and syncing credentials | Ansible | Verified |
-| **Gitea** | Self-hosted Git remote for private repositories | Manual | Verified |
-| **Prometheus** | Metrics collection and scraping across the stack | Manual | Verified |
-| **Grafana** | Dashboards and visualization on top of Prometheus metrics | Manual | Verified |
-| **Scrutiny** | S.M.A.R.T. disk health monitoring and alerting | Manual | Verified |
+* **Homarr:** Unified dashboard organizing internal services with resource widgets.
+* **Uptime Kuma:** Automated availability monitoring and incident tracking.
+* **Vaultwarden:** High-performance, self-hosted password manager.
+* **Gitea:** Lightweight private Git source control service.
+* **Prometheus & Grafana:** Infrastructure metric harvesting and analytical visualization.
+* **Scrutiny:** Hard drive health monitoring through S.M.A.R.T attribute tracking.
 
-### Media and Files
+### Media, Files & Automation
 
-| Service | Description | Deploy | Status |
-| --- | --- | --- | --- |
-| **Immich** | Backs up phone photos/videos with facial recognition and albums | Ansible | Verified |
-| **Nextcloud** | File sync, share links, and office collaboration | Manual | Verified |
-| **Sonarr** | Monitors and automatically fetches TV episodes (part of `arr-suite/`) | Manual | Verified |
-| **Bazarr** | Fetches matching subtitles for the Sonarr library (part of `arr-suite/`) | Manual | Verified |
-| **Actual Budget** | Self-hosted local-first personal finance budget app | Manual | **New** |
+* **Home Assistant:** Centralized home automation hub.
+* **Frigate:** High-performance NVR with real-time AI object detection.
+* **Immich:** High-performance photo and video backup solution.
+* **Nextcloud:** File sync, share links, and office collaboration.
+* **Arr Suite:** Automated media management (Sonarr, Bazarr).
+* **Actual Budget:** Privacy-focused personal finance and budgeting system.
+* **n8n:** Workflow automation platform (includes custom JS/Python scripts for payload parsing and cryptography).
+* **Trilium Notes:** Hierarchical note-taking application supporting deep personal knowledge bases.
+* **ChangeDetection.io:** Web page change detection and monitoring notification service.
+* **IT-Tools:** Self-hosted collection of everyday developer utilities.
 
-### Automation and Tools
+### CI/CD & Networking
 
-| Service | Description | Deploy | Status |
-| --- | --- | --- | --- |
-| **Home Assistant** | Home automation hub; likely the control plane for the ESP32 irrigation node | Manual | Verified |
-| **n8n** | Workflow/automation orchestration (webhooks, integrations, scheduled jobs) | Manual | Verified |
-| **IT-Tools** | Self-hosted collection of everyday developer/IT utilities | Manual | Verified |
-| **Trilium Notes** | Hierarchical note-taking application supporting deep personal knowledge bases | Manual | **New** |
-| **ChangeDetection.io** | Self-hosted web page change detection and monitoring notification service | Manual | **New** |
+* **Woodpecker CI:** Lightweight CI/CD pipeline runner wired to Gitea.
+* **OPNsense:** Router/firewall topology with custom backup, HAProxy, and Telegraf configurations.
 
-### CI/CD
+---
 
-| Service | Description | Deploy | Status |
-| --- | --- | --- | --- |
-| **Woodpecker CI** | Lightweight CI/CD pipeline runner, plausibly wired to Gitea for build triggers | Manual | Verified |
+## Infrastructure as Code & Hypervisors
 
-### Networking
+The repository provides clean, production-ready IaC templates:
 
-| Service | Description | Deploy | Status |
-| --- | --- | --- | --- |
-| **OPNsense** | Router/firewall with Suricata IPS/IDS protection | Manual | Verified |
+* **`terraform/`:** Core Terraform manifests (`main.tf`, `providers.tf`).
+* **`aws/`:** Structured following enterprise practices, containing separated environments (`dev`, `prod`), robust networking modules (`modules/vpc`), and computing templates (`modules/ec2`).
+* **`hypervisors/esxi/`:** Virtual machine provisioning scripts leveraging the community ESXi provider.
+* **`hypervisors/xen/`:** Declarative domain configuration files.
+* **`hypervisors/bhyve/`:** FreeBSD hypervisor guest deployment patterns.
 
 ---
 
 ## ESP32 / Embedded
 
-The `esp32/` directory tracks firmware and device configs for home-automation hardware, separate from the Docker/Ansible service layer.
+The `esp32/` directory tracks firmware and device configs for home-automation hardware.
 
-```text
-esp32/
-├── irrigation/
-│   └── files/
-│       ├── config.yaml        # base device configuration
-│       ├── main.cpp           # firmware entry point
-│       ├── sector_1.yaml      # per-zone/sector configuration
-│       ├── timpi.yaml         # timing/schedule configuration
-│       └── valve.cpp          # valve control logic
-└── footprint/
-    └── WIP.md                 # planning doc — not yet implemented
-
-
-```
-
-* `irrigation/` — an ESP32-driven irrigation controller: `main.cpp` and `valve.cpp` suggest firmware handling valve actuation, with `config.yaml`, `sector_1.yaml`, and `timpi.yaml` as YAML-based zone/schedule configuration.
-* `footprint/` — currently just a `WIP.md` planning document; no implementation yet. Treat as a placeholder for a future ESP32 effort.
-
----
-
-## Kubernetes Track
-
-Per `ROADMAP.md`, Kubernetes (K3s specifically) is being evaluated as a path toward multi-node HA — it is explicitly **not** yet the primary orchestration layer; the primary stack remains Docker Compose + Ansible on a single node.
-
-```text
-kubernetes/
-├── ansible/          # Ansible tooling scoped to k8s bootstrap/management
-└── deploy.mk         # Makefile-driven deployment entrypoint
-
-
-```
+* `irrigation/` — ESP32-driven irrigation controller: C++ firmware (`main.cpp`, `valve.cpp`) handling actuation, combined with YAML-based zone and schedule configurations.
+* `footprint/` — Planning document for future ESP32 node expansions.
 
 ---
 
@@ -251,125 +228,105 @@ kubernetes/
 
 ```text
 homelab/
-├── README.md
-├── ROADMAP.md
+├── .github/                           # Kubernetes track Dependabot & Workflows
+├── .gitignore
+├── .pre-commit-config.yaml            # Git hooks for linting & formatting
 ├── CONTRIBUTING.md
 ├── LICENSE
+├── README.md
+├── ROADMAP.md
+├── SECURITY.md
+├── ansible/                           # Core infrastructure playbooks
+│   ├── group_vars/
+│   ├── main.yml
+│   └── playbook.yml
+├── aws/                               # Cloud IaC
+│   ├── environments/ (dev, prod)
+│   └── modules/ (ec2, vpc)
+├── esp32/                             # Microcontroller firmware
+│   ├── footprint/
+│   └── irrigation/ (C++ & YAML configs)
 ├── hardware/
-│   └── hardware.md
-├── ansible/
-│   └── group_vars/
-│       ├── all.yml
-│       ├── deploy_services.yml
-│       └── inventory.ini
+├── hypervisors/                       # Alt-hypervisor Terraform configs
+│   ├── bhyve/
+│   ├── esxi/
+│   └── xen/
 ├── inventory/
-│   └── hosts.yml                      # Ansible inventory
-├── esp32/
-│   ├── irrigation/
-│   │   └── files/
-│   │       ├── config.yaml
-│   │       ├── main.cpp
-│   │       ├── sector_1.yaml
-│   │       ├── timpi.yaml
-│   │       └── valve.cpp
-│   └── footprint/
-│       └── WIP.md
-├── kubernetes/
+│   └── hosts.yml
+├── kubernetes/                        # K3s Evaluation Track
 │   ├── ansible/
+│   ├── hardware/
+│   ├── services/
 │   └── deploy.mk
-└── services/
-    ├── actualbudget/docker-compose.yml
-    ├── arr-suite/
-    │   ├── docker-compose-bazarr.yml
-    │   └── docker-compose-sonarr.yml
-    ├── changedetection.io/docker-compose.yml
-    ├── crowdsec/docker-compose.yml
-    ├── gitea/docker-compose.yml
-    ├── grafana/docker-compose.yml
-    ├── homarr/docker-compose.yml
-    ├── homeassistant/                    
-    ├── immich/docker-compose.yml
-    ├── it-tools/docker-compose.yml
-    ├── n8n/docker-compose.yml
-    ├── nextcloud/docker-compose.yml
-    ├── nginx/docker-compose.yml       # Nginx Proxy Manager
-    ├── opnsense/                        
-    ├── pi-hole/docker-compose.yml
-    ├── prometheus/                      # docker-compose.yml + config file
-    ├── scrutiny/docker-compose.yml
-    ├── trillium-notes/docker-compose.yml
-    ├── uptime-kuma/docker-compose.yml
-    ├── vaultwarden/docker-compose.yml
-    └── woodpecker-ci/docker-compose.yml
-
+├── scripts/
+│   └── bootstrap.sh
+├── services/                          # Dockerized Application Stack
+│   ├── actualbudget/
+│   ├── arr-suite/
+│   ├── authentik/
+│   ├── changedetection.io/
+│   ├── crowdsec/
+│   ├── frigate/
+│   ├── gitea/
+│   ├── grafana/
+│   ├── homarr/
+│   ├── homeassistant/
+│   ├── immich/
+│   ├── it-tools/
+│   ├── n8n/ (Includes custom JS/Python parsing scripts)
+│   ├── nextcloud/
+│   ├── nginx/
+│   ├── opnsense/ (Topology, HAProxy templates, Telegraf conf, Python scripts)
+│   ├── pi-hole/
+│   ├── prometheus/
+│   ├── scrutiny/
+│   ├── trillium-notes/
+│   ├── uptime-kuma/
+│   ├── vaultwarden/
+│   └── woodpecker-ci/
+└── terraform/                         # Core IaC definitions
+    ├── main.tf
+    └── providers.tf
 
 ```
 
 ---
 
-## Getting Started
+## Getting Started & Automation Scripts
 
-### Prerequisites
+### 1. Environment Bootstrap
 
-* Proxmox VE host with LXC containers provisioned for each service
-* Docker Engine + Docker Compose v2 on every target container
-* Python 3 on target nodes (required by Ansible)
-* Ansible on the control node, with SSH key access to every container
-* Tailscale on the control node for remote management
-* *(If working with `esp32/`)* PlatformIO or Arduino IDE with ESP32 board support
-* *(If working with `kubernetes/`)* Whichever k8s tooling `deploy.mk` targets
-
-### Automated deployment (services wired into `deploy_services.yml`)
-
-1. Clone the repository:
+Initialize local pre-commit hooks and perform baseline validation checks:
 
 ```bash
-git clone https://github.com/stefannut/homelab.git
-cd homelab
-
+./scripts/bootstrap.sh
 
 ```
 
-2. Replace the placeholder addresses in `ansible/group_vars/inventory.ini` — and/or `inventory/hosts.yml` — with your real LXC IPs.
-3. Review `ansible/group_vars/all.yml` — adjust `default_timezone`, `docker_network_name`, or `homelab_services` if needed.
-4. Set any required secrets first (see [Configuration and Secrets](https://www.google.com/search?q=%23configuration-and-secrets)).
-5. Run the playbook from the repository root:
+### 2. Automated Orchestration (Ansible)
+
+Execute deployments against defined targets:
 
 ```bash
 ansible-playbook -i ansible/group_vars/inventory.ini ansible/group_vars/deploy_services.yml
 
-
 ```
 
-### Manual deployment (remaining services)
+### 3. Manual Service Lifecycle
 
 ```bash
 cd services/<service-name>
 docker compose up -d
 
-
 ```
 
 ---
 
-## Configuration and Secrets
+## Configuration & Security Practices
 
-Per `CONTRIBUTING.md` §2, no secrets are ever committed to Git. Secrets are supplied via a per-service `.env` file (git-ignored) or Ansible Vault for automated deployments.
-
-| Service | Required before first run |
-| --- | --- |
-| **Nextcloud** | `MYSQL_ROOT_PASSWORD` for the `db` service, plus an app database password |
-| **Pi-hole** | `WEBPASSWORD` for the admin UI |
-| **Vaultwarden** | `DOMAIN`, matching the hostname you'll access it from |
-| **Immich** | `.env` with `UPLOAD_LOCATION` and, optionally, `IMMICH_VERSION` |
-| **Grafana** | Admin credentials, Prometheus data source URL |
-| **Prometheus** | Scrape target list in its config file |
-| **n8n** | Encryption key, base URL, and any webhook credentials |
-| **Home Assistant** | Long-lived access token if integrating with n8n or ESP32 devices |
-| **Gitea + Woodpecker CI** | OAuth/webhook secret linking the two |
-| **Actual Budget** | Data directory configuration |
-| **Trilium Notes** | Node data directory configuration |
-| **ChangeDetection.io** | PUID/PGID and datastore volume permissions |
+* **Secret Management:** Plaintext credentials are strictly excluded from version control; sensitive elements are managed through ignored `.env` parameters or Ansible Vault.
+* **Network Security:** Perimeter protection is reinforced via Tailscale mesh routing, removing the need to expose raw ports externally. Authentik acts as a mandatory SSO gatekeeper for sensitive internal dashboards.
+* **Vulnerability Reporting:** See `SECURITY.md` for proper disclosure channels.
 
 ---
 
@@ -382,40 +339,20 @@ In addition to the main Proxmox node, the infrastructure includes a dedicated se
 * **CPU:** Intel Celeron N2830 (2 cores / 2 threads)
 * **RAM:** 2 GB DDR3
 * **Storage:** 500 GB HDD
-* **Role:** Centralized storage, file sharing, and a secondary backup destination within the homelab.
 
 ---
 
-## Security Considerations
+## Roadmap & Contributing
 
-* No secrets are committed in plaintext; sensitive values are left blank in compose files and supplied at deploy time.
-* CrowdSec ingests Nginx Proxy Manager's access logs and blocks IPs matching known attack signatures.
-* Pi-hole blocks ad and tracker domains at the DNS layer for every device on the LAN.
-* Remote access goes through Tailscale's mesh VPN rather than forwarding ports to the internet.
-
----
-
-## Notes and Considerations
-
-* **Two inventory sources:** `ansible/group_vars/inventory.ini` and `inventory/hosts.yml` both exist. Confirm which one is authoritative for `deploy_services.yml`.
-* **Newly added services:** `actualbudget`, `changedetection.io`, and `trillium-notes` have been integrated into the `services/` stack.
-* **`esp32/footprint/`** is a `WIP.md` placeholder only.
-* **`kubernetes/`** is an early track per the roadmap, not the production orchestration layer.
-
----
-
-## Roadmap
-
-See `ROADMAP.md` for the full document. Current focus areas: high availability (Docker Swarm vs. K3s evaluation), automated backups, centralized observability stack, and deployment/CI maturity.
-
----
-
-## Contributing
-
-See `CONTRIBUTING.md` for secrets handling, service-folder conventions, and Ansible inventory conventions before adding or modifying a service.
+* Refer to `ROADMAP.md` for planned infrastructure upgrades (such as high-availability clustering and Kubernetes migration).
+* Review `CONTRIBUTING.md` prior to submitting adjustments or adding new workloads.
 
 ---
 
 ## License
 
-See `LICENSE`.
+Licensed under the terms outlined in `LICENSE`.
+
+```
+
+```
