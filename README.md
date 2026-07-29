@@ -2,33 +2,22 @@
 
 Declarative, Ansible-driven infrastructure for a Proxmox-based homelab — self-hosted media, productivity, security, monitoring, home automation, and CI/CD services running across isolated LXC containers, with a growing ESP32 sensor/automation footprint and an early Kubernetes track.
 
-![Proxmox VE](https://img.shields.io/badge/Proxmox_VE-9.2-E57000?style=flat-square&logo=proxmox&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Compose_v2-2496ED?style=flat-square&logo=docker&logoColor=white)
+
+![Proxmox](https://img.shields.io/badge/Proxmox_VE-9.2-E57000?style=flat-square&logo=proxmox&logoColor=white)
+![AWS](https://img.shields.io/badge/Amazon_Web_Services-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white)
+![ESXi](https://img.shields.io/badge/VMware_ESXi-6C757D?style=flat-square&logo=vmware&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat-square&logo=terraform&logoColor=white)
 ![Ansible](https://img.shields.io/badge/Ansible-Automated-EE0000?style=flat-square&logo=ansible&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose_v2-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-K3s-326CE5?style=flat-square&logo=kubernetes&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white)
 ![Tailscale](https://img.shields.io/badge/Tailscale-Mesh_VPN-242424?style=flat-square&logo=tailscale&logoColor=white)
-
-
----
-
-## Table of Contents
-
-* [Overview](https://www.google.com/search?q=%23overview)
-* [Tech Stack](https://www.google.com/search?q=%23tech-stack)
-* [Architecture](https://www.google.com/search?q=%23architecture)
-* [Hardware](https://www.google.com/search?q=%23hardware)
-* [Services](https://www.google.com/search?q=%23services)
-* [ESP32 / Embedded](https://www.google.com/search?q=%23esp32--embedded)
-* [Kubernetes Track](https://www.google.com/search?q=%23kubernetes-track)
-* [Repository Structure](https://www.google.com/search?q=%23repository-structure)
-* [Getting Started](https://www.google.com/search?q=%23getting-started)
-* [Configuration and Secrets](https://www.google.com/search?q=%23configuration-and-secrets)
-* [Security Considerations](https://www.google.com/search?q=%23security-considerations)
-* [Notes and Considerations](https://www.google.com/search?q=%23notes-and-considerations)
-* [Roadmap](https://www.google.com/search?q=%23roadmap)
-* [Contributing](https://www.google.com/search?q=%23contributing)
-* [License](https://www.google.com/search?q=%23license)
-* [Acknowledgments](https://www.google.com/search?q=%23acknowledgments)
-
+![Pi-hole](https://img.shields.io/badge/Pi--hole-DNS-96060C?style=flat-square&logo=pihole&logoColor=white)
+![CrowdSec](https://img.shields.io/badge/CrowdSec-IPS-ECEFF1?style=flat-square&logo=crowdsec&logoColor=black)
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=flat-square&logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?style=flat-square&logo=grafana&logoColor=white)
+![ESP32](https://img.shields.io/badge/ESP32-IoT-E7352C?style=flat-square&logo=espressif&logoColor=white)
+![Home Assistant](https://img.shields.io/badge/Home_Assistant-41BDF5?style=flat-square&logo=homeassistant&logoColor=white)
 ---
 
 ## Overview
@@ -141,6 +130,7 @@ flowchart TB
     GR -->|dashboards| PR
     GT -.->|triggers| WP
 
+
 ```
 
 > **Legend:** Solid arrows follow user/traffic flow; dotted arrows represent DNS queries, log ingestion, metrics scraping, and device telemetry.
@@ -219,7 +209,7 @@ flowchart TB
 
 ---
 
-## Embedded
+## ESP32 / Embedded
 
 The `esp32/` directory tracks firmware and device configs for home-automation hardware, separate from the Docker/Ansible service layer.
 
@@ -234,6 +224,7 @@ esp32/
 │       └── valve.cpp          # valve control logic
 └── footprint/
     └── WIP.md                 # planning doc — not yet implemented
+
 
 ```
 
@@ -250,6 +241,7 @@ Per `ROADMAP.md`, Kubernetes (K3s specifically) is being evaluated as a path tow
 kubernetes/
 ├── ansible/          # Ansible tooling scoped to k8s bootstrap/management
 └── deploy.mk         # Makefile-driven deployment entrypoint
+
 
 ```
 
@@ -295,20 +287,21 @@ homelab/
     ├── gitea/docker-compose.yml
     ├── grafana/docker-compose.yml
     ├── homarr/docker-compose.yml
-    ├── homeassistant/                 
+    ├── homeassistant/                    
     ├── immich/docker-compose.yml
     ├── it-tools/docker-compose.yml
     ├── n8n/docker-compose.yml
     ├── nextcloud/docker-compose.yml
     ├── nginx/docker-compose.yml       # Nginx Proxy Manager
-    ├── opnsense/                     
+    ├── opnsense/                        
     ├── pi-hole/docker-compose.yml
-    ├── prometheus/                    # docker-compose.yml + config file
+    ├── prometheus/                      # docker-compose.yml + config file
     ├── scrutiny/docker-compose.yml
     ├── trillium-notes/docker-compose.yml
     ├── uptime-kuma/docker-compose.yml
     ├── vaultwarden/docker-compose.yml
     └── woodpecker-ci/docker-compose.yml
+
 
 ```
 
@@ -334,6 +327,7 @@ homelab/
 git clone https://github.com/stefannut/homelab.git
 cd homelab
 
+
 ```
 
 2. Replace the placeholder addresses in `ansible/group_vars/inventory.ini` — and/or `inventory/hosts.yml` — with your real LXC IPs.
@@ -344,6 +338,7 @@ cd homelab
 ```bash
 ansible-playbook -i ansible/group_vars/inventory.ini ansible/group_vars/deploy_services.yml
 
+
 ```
 
 ### Manual deployment (remaining services)
@@ -351,6 +346,7 @@ ansible-playbook -i ansible/group_vars/inventory.ini ansible/group_vars/deploy_s
 ```bash
 cd services/<service-name>
 docker compose up -d
+
 
 ```
 
@@ -386,8 +382,6 @@ In addition to the main Proxmox node, the infrastructure includes a dedicated se
 * **CPU:** Intel Celeron N2830 (2 cores / 2 threads)
 * **RAM:** 2 GB DDR3
 * **Storage:** 500 GB HDD
-
-
 * **Role:** Centralized storage, file sharing, and a secondary backup destination within the homelab.
 
 ---
