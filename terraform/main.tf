@@ -1,6 +1,6 @@
 locals {
   lxc_containers = {
-    100 = { name = "nginx",             ostemplate = "local:vztmpl/debian-13-standard_13.6-1_amd64.tar.zst" },
+    100 = { name = "nginx",            ostemplate = "local:vztmpl/debian-13-standard_13.6-1_amd64.tar.zst" },
     101 = { name = "pihole",            ostemplate = "local:vztmpl/debian-13-standard_13.6-1_amd64.tar.zst" },
     102 = { name = "tailscale",         ostemplate = "local:vztmpl/debian-13-standard_13.6-1_amd64.tar.zst" },
     103 = { name = "vaultwarden",       ostemplate = "local:vztmpl/debian-13-standard_13.6-1_amd64.tar.zst" },
@@ -31,7 +31,7 @@ resource "proxmox_virtual_environment_container" "lxc" {
 
   operating_system {
     template_file_id = each.value.ostemplate
-    type = strcontains(lower(each.value.name), "debian") ? "debian" : "alpine""
+    type             = strcontains(lower(each.value.name), "debian") ? "debian" : "alpine"
   }
 
   initialization {
