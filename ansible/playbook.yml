@@ -39,4 +39,4 @@
   hosts: ha_lxc
   become: true
   roles:
-    - home-assistant
+    - home_assistant
