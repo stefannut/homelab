@@ -5,6 +5,7 @@ rules:
   document-start: disable
   truthy: disable
   brackets: disable
+  braces: disable
   trailing-spaces: disable
   empty-lines: disable
   indentation: disable
