@@ -11,5 +11,3 @@ zone:
     pin_gpio: 27
     prag_umiditate: 40
     durata_udare_sec: 900
-sistem:
-  dry_run: true
