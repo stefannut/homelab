@@ -16,6 +16,7 @@ This file describes hardware and host-level virtualization only. Service definit
 | GPU | NVIDIA GeForce GTX 1050 Ti — 4 GB VRAM |
 | RAM | 8 GB DDR4 |
 | Storage | 512 GB SSD |
+| PSU | Coldex 350W Pure Sine Wave |
 
 **Capacity notes:**
 
