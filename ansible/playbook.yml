@@ -1,4 +1,19 @@
-- name: Create service directories
+---
+- name: Deploy Homelab Services
+  hosts: all
+  become: true
+  vars:
+    base_path: /opt/homelab
+    homelab_services:
+      - crowdsec
+      - homepage
+      - immich
+      - nginx
+      - uptime-kuma
+      - vaultwarden
+
+  tasks:
+    - name: Create service directories
       ansible.builtin.file:
         path: "{{ base_path }}/{{ item }}"
         state: directory
@@ -13,3 +28,15 @@
         dest: "{{ base_path }}/{{ item }}/docker-compose.yml"
         mode: '0644'
       loop: "{{ homelab_services }}"
+
+    - name: Start services using Docker Compose V2
+      community.docker.docker_compose_v2:
+        project_src: "{{ base_path }}/{{ item }}"
+        state: present
+      loop: "{{ homelab_services }}"
+
+- name: Configure Home Assistant LXC
+  hosts: ha_lxc
+  become: true
+  roles:
+    - home-assistant
