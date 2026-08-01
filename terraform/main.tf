@@ -31,7 +31,7 @@ resource "proxmox_virtual_environment_container" "lxc" {
 
   operating_system {
     template_file_id = each.value.ostemplate
-    type             = greather_than_alpine(each.value.name) ? "debian" : "alpine"
+    type = strcontains(lower(each.value.name), "debian") ? "debian" : "alpine""
   }
 
   initialization {
