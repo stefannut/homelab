@@ -1,7 +1,7 @@
 
 # Homelab
 
-Declarative, Ansible-driven infrastructure for a Proxmox-based homelab — self-hosted media, productivity, security, monitoring, home automation, and CI/CD services running across isolated LXC containers, with a growing ESP32 sensor/automation footprint, multi-hypervisor options, Infrastructure as Code (Terraform) templates, and an early Kubernetes track.
+Declarative, Ansible-driven infrastructure for a Proxmox-based homelab — self-hosted media, productivity, security, monitoring, home automation, and CI/CD services running across isolated LXC containers, with a ESP32 sensor/automation footprint, multi-hypervisor options, Infrastructure as Code (Terraform) templates, and an early Kubernetes track.
 
 ![Proxmox](https://img.shields.io/badge/Proxmox_VE-9.2-E57000?style=flat-square&logo=proxmox&logoColor=white)
 ![AWS](https://img.shields.io/badge/Amazon_Web_Services-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white)
@@ -220,7 +220,7 @@ The repository provides clean, production-ready IaC templates:
 The `esp32/` directory tracks firmware and device configs for home-automation hardware.
 
 * `irrigation/` — ESP32-driven irrigation controller: C++ firmware (`main.cpp`, `valve.cpp`) handling actuation, combined with YAML-based zone and schedule configurations.
-* `footprint/` — Planning document for future ESP32 node expansions.
+* `footprint/` — ESP32-driven fingerprint system: C++ firmware (`main.cpp`).
 
 ---
 
@@ -244,7 +244,7 @@ homelab/
 │   ├── environments/ (dev, prod)
 │   └── modules/ (ec2, vpc)
 ├── esp32/                             # Microcontroller firmware
-│   ├── footprint/
+│   ├── footprint/  (C++)
 │   └── irrigation/ (C++ & YAML configs)
 ├── hardware/
 ├── hypervisors/                       # Alt-hypervisor Terraform configs
